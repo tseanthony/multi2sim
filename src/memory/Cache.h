@@ -297,6 +297,7 @@ public:
 	}
 
 	std::unique_ptr<bool[]> core_list;
+	bool seen_core = false;
 	/// Set the number of cores
 	void setNumCores(int num_cores)
 	{ 
