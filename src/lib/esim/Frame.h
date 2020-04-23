@@ -105,6 +105,9 @@ public:
 	/// Return a pointer to next frames in a waiting queue, or null if the
 	/// event frame is not suspended in a queue.
 	Frame *getNext() const { return next.get(); }
+
+	/// Adding in core_id to pass to the cache
+	int core_id = -1;
 };
 
 
