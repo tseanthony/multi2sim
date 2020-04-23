@@ -501,7 +501,7 @@ public:
 	void MemoryAccess(mem::Module *module,
 			mem::Module::AccessType access_type,
 			unsigned address,
-			std::shared_ptr<Uop> uop
+			std::shared_ptr<Uop> uop,
 			int core_id);
 
 
