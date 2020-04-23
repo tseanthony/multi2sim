@@ -197,8 +197,6 @@ void Cache::AccessBlock(unsigned set_id, unsigned way_id, int core_id)
 		set->lru_list.Erase(block->lru_node);
 		set->lru_list.PushFront(block->lru_node);
 	}
-
-	std::cout >>
 }
 
 
