@@ -326,7 +326,8 @@ void System::EventLoadHandler(esim::Event *event, esim::Frame *esim_frame)
 		cache->setBlock(frame->set,
 				frame->way,
 				frame->tag,
-				frame->shared ? Cache::BlockShared : Cache::BlockExclusive);
+				frame->shared ? Cache::BlockShared : Cache::BlockExclusive,
+				frame->core_id);
 
 		// Continue
 		esim_engine->Next(event_load_unlock);
@@ -624,7 +625,7 @@ void System::EventStoreHandler(esim::Event *event,
 
 		// Update tag/state
 		cache->setBlock(frame->set, frame->way, frame->tag,
-				Cache::BlockModified);
+				Cache::BlockModified, frame->core_id);
 
 		// Unlock directory entry
 		directory->UnlockEntry(frame->set,
@@ -1009,7 +1010,7 @@ void System::EventNCStoreHandler(esim::Event *event,
 		// Set block state to E/S depending on return var 'shared'.
 		// Also set the tag of the block.
 		cache->setBlock(frame->set, frame->way, frame->tag,
-				Cache::BlockNonCoherent);
+				Cache::BlockNonCoherent, frame->core_id);
 
 		// Unlock directory entry
 		directory->UnlockEntry(frame->set,
@@ -1175,7 +1176,8 @@ void System::EventFindAndLockHandler(esim::Event *event,
 
 			// Find a victim to evict, only in up-down accesses.
 			assert(!frame->way);
-			frame->way = cache->ReplaceBlock(frame->set);
+			// Adding in core_id to pass to cache
+			frame->way = cache->ReplaceBlock(frame->set, frame->core_id);
 		}
 		assert(frame->way >= 0);
 
@@ -1279,7 +1281,8 @@ void System::EventFindAndLockHandler(esim::Event *event,
 		// subsequent lookup detects that the block is being brought.
 		// Also, update LRU counters here.
 		cache->setTransientTag(frame->set, frame->way, frame->tag);
-		cache->AccessBlock(frame->set, frame->way);
+		// Adding in core_id to pass to cache
+		cache->AccessBlock(frame->set, frame->way, frame->core_id);
 
 		// Access latency
 		module->incDirectoryAccesses();
@@ -1395,7 +1398,7 @@ void System::EventFindAndLockHandler(esim::Event *event,
 
 			// After an eviction, set the block to invalid
 			cache->setBlock(frame->set, frame->way, 0,
-					Cache::BlockInvalid);
+					Cache::BlockInvalid, frame->core_id);
 		}
 
 		// If this is a main memory, the block is here. A previous miss
@@ -1405,7 +1408,7 @@ void System::EventFindAndLockHandler(esim::Event *event,
 		{
 			frame->state = Cache::BlockExclusive;
 			cache->setBlock(frame->set, frame->way, frame->tag,
-					frame->state);
+					frame->state, frame->core_id);
 		}
 
 		// Return
@@ -1511,7 +1514,8 @@ void System::EventEvictHandler(esim::Event *event,
 			cache->setBlock(frame->src_set,
 					frame->src_way,
 					0,
-					Cache::BlockInvalid);
+					Cache::BlockInvalid,
+					frame->core_id);
 
 			// Continue with 'evict-finish'
 			esim_engine->Next(event_evict_finish);
@@ -1665,7 +1669,8 @@ void System::EventEvictHandler(esim::Event *event,
 				target_cache->setBlock(frame->set,
 						frame->way,
 						frame->tag,
-						Cache::BlockModified);
+						Cache::BlockModified,
+						frame->core_id);
 			}
 			else if (frame->state == Cache::BlockModified)
 			{
@@ -1759,7 +1764,8 @@ void System::EventEvictHandler(esim::Event *event,
 				target_cache->setBlock(frame->set,
 						frame->way,
 						frame->tag,
-						Cache::BlockModified);
+						Cache::BlockModified,
+						frame->core_id);
 				break;
 			
 			case Cache::BlockOwned:
@@ -1774,7 +1780,8 @@ void System::EventEvictHandler(esim::Event *event,
 				target_cache->setBlock(frame->set,
 						frame->way,
 						frame->tag,
-						Cache::BlockNonCoherent);
+						Cache::BlockNonCoherent,
+						frame->core_id);
 				break;
 			
 			default:
@@ -1894,7 +1901,8 @@ void System::EventEvictHandler(esim::Event *event,
 			cache->setBlock(frame->src_set,
 					frame->src_way,
 					0,
-					Cache::BlockInvalid);
+					Cache::BlockInvalid,
+					frame->core_id);
 		
 		// Sanity
 		assert(!directory->isBlockSharedOrOwned(frame->src_set, frame->src_way));
@@ -2283,7 +2291,8 @@ void System::EventWriteRequestHandler(esim::Event *event,
 		target_cache->setBlock(frame->set,
 				frame->way,
 				frame->tag,
-				Cache::BlockExclusive);
+				Cache::BlockExclusive,
+				frame->core_id);
 
 		// If blocks were sent directly to the peer, the reply size 
 		// would have been decreased.  Based on the final size, we can
@@ -2379,7 +2388,7 @@ void System::EventWriteRequestHandler(esim::Event *event,
 
 		// Set state to I
 		target_cache->setBlock(frame->set, frame->way, 0,
-				Cache::BlockInvalid);
+				Cache::BlockInvalid, frame->core_id);
 
 		// Unlock directory entry
 		target_directory->UnlockEntry(frame->set,
@@ -2845,7 +2854,8 @@ void System::EventReadRequestHandler(esim::Event *event,
 		target_cache->setBlock(frame->set,
 				frame->way,
 				frame->tag,
-				frame->shared ? Cache::BlockShared : Cache::BlockExclusive);
+				frame->shared ? Cache::BlockShared : Cache::BlockExclusive,
+				frame->core_id);
 
 		// Continue with 'read-request-updown-finish'
 		esim_engine->Next(event_read_request_updown_finish);
@@ -3081,7 +3091,7 @@ void System::EventReadRequestHandler(esim::Event *event,
 		{
 			// Set state to S
 			target_cache->setBlock(frame->set, frame->way,
-					frame->tag, Cache::BlockShared);
+					frame->tag, Cache::BlockShared, frame->core_id);
 
 			// State is changed to shared, set owner of 
 			// sub-blocks to 0.
@@ -3107,7 +3117,7 @@ void System::EventReadRequestHandler(esim::Event *event,
 
 			// Set state to S
 			target_cache->setBlock(frame->set, frame->way,
-					frame->tag, Cache::BlockShared);
+					frame->tag, Cache::BlockShared, frame->core_id);
 
 			// State is changed to shared, set owner of sub-blocks 
 			// to 0
@@ -3154,7 +3164,7 @@ void System::EventReadRequestHandler(esim::Event *event,
 
 			// Set block to S
 			target_cache->setBlock(frame->set, frame->way,
-					frame->tag, Cache::BlockShared);
+					frame->tag, Cache::BlockShared, frame->core_id);
 
 			// Done
 			break;
@@ -3417,14 +3427,16 @@ void System::EventInvalidateHandler(esim::Event *event,
 				cache->setBlock(frame->set,
 						frame->way,
 						frame->tag,
-						Cache::BlockModified);
+						Cache::BlockModified,
+						frame->core_id);
 				break;
 
 			case Cache::BlockShared:
 				cache->setBlock(frame->set,
 						frame->way,
 						frame->tag,
-						Cache::BlockNonCoherent);
+						Cache::BlockNonCoherent,
+						frame->core_id);
 				break;
 
 			case Cache::BlockOwned:

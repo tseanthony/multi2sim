@@ -52,10 +52,12 @@ int Thread::IssueLoadQueue(int quantum)
 		ExtractFromLoadQueue(uop.get());
 
 		// Access memory system
+		// Adding in core id to pass to cache
 		cpu->MemoryAccess(data_module,
 				mem::Module::AccessLoad,
 				uop->physical_address,
-				uop);
+				uop,
+				core->getId());
 
 		// Mark uop as issued
 		uop->issued = true;

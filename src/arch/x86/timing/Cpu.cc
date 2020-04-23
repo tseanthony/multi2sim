@@ -190,7 +190,8 @@ void Cpu::Run()
 void Cpu::MemoryAccess(mem::Module *module,
 			mem::Module::AccessType access_type,
 			unsigned address,
-			std::shared_ptr<Uop> uop)
+			std::shared_ptr<Uop> uop,
+			int core_id)
 {
 	// New frame
 	auto frame = misc::new_shared<MemoryAccessFrame>();
@@ -198,6 +199,8 @@ void Cpu::MemoryAccess(mem::Module *module,
 	frame->access_type = access_type;
 	frame->address = address;
 	frame->uop = uop;
+	/// Adding in core id to pass to cache
+	frame->core_id = core_id;
 
 	// Schedule event
 	esim::Engine *esim_engine = esim::Engine::getInstance();

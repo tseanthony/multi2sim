@@ -224,6 +224,9 @@ public:
 	// of a block
 	bool partial_invalidation = false;
 
+	/// Adding in to pass core_id to the cache
+	int core_id = -1;
+
 
 
 	//

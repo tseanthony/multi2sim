@@ -252,10 +252,12 @@ public:
 	///
 	/// \param state
 	///	New state for the block
+	/// Adding in core_id
 	void setBlock(unsigned set_id,
 			unsigned way_id,
 			unsigned tag,
-			BlockState state);
+			BlockState state,
+			int core_id);
 
 	/// Return the tag and the state of a cache block.
 	///
@@ -279,11 +281,13 @@ public:
 	/// Mark a block as last accessed as per the LRU policy. This function
 	/// internally updates the linked list that keeps track of the LRU order
 	/// of the blocks in a set.
-	void AccessBlock(unsigned set_id, unsigned way_id);
+	/// Adding in core_id
+	void AccessBlock(unsigned set_id, unsigned way_id, int core_id);
 
 	/// Return the way index of the block to be replaced in the given set,
 	/// as per the current block replacement policy.
-	unsigned ReplaceBlock(unsigned set_id);
+	/// Adding in core_id
+	unsigned ReplaceBlock(unsigned set_id, int core_id);
 
 	/// Set the transient tag of a block.
 	void setTransientTag(unsigned set_id, unsigned way_id, unsigned tag)
@@ -292,11 +296,13 @@ public:
 		block->transient_tag = tag;
 	}
 
+	std::unique_ptr<bool[]> core_list;
 	/// Set the number of cores
 	void setNumCores(int num_cores)
 	{ 
 		this->num_cores = num_cores;
-		std::cout << "Cache: " << name << ", numcores=" << this->num_cores;
+		core_list = misc::new_unique_array<int>(num_cores);
+		std::cout << "Cache: " << name << ", numcores=" << this->num_cores << std::endl;
 		// set up lists to manage partitions
 	}
 
