@@ -301,7 +301,7 @@ public:
 	void setNumCores(int num_cores)
 	{ 
 		this->num_cores = num_cores;
-		core_list = misc::new_unique_array<int>(num_cores);
+		core_list = misc::new_unique_array<bool>(num_cores);
 		std::cout << "Cache: " << name << ", numcores=" << this->num_cores << std::endl;
 		// set up lists to manage partitions
 	}
