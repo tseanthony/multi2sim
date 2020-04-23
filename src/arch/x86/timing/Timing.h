@@ -193,7 +193,7 @@ public:
 	
 	/// Get the number of cores from the CPU
 	/// Added to get the number of cores to the cache
-	static int getNumCores() { return Cpu::getNumCores(); }
+	int getNumCores() { return Cpu::getNumCores(); }
 	
 	
 	//
