@@ -296,7 +296,7 @@ public:
 	void setNumCores(int num_cores)
 	{ 
 		this->num_cores = num_cores;
-		printf("Cache %s, num_cores=%d", name, this->num_cores);
+		std::cout << "Cache: " << name << ", numcores=" << this->num_cores;
 		// set up lists to manage partitions
 	}
 
