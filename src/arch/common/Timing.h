@@ -123,6 +123,10 @@ public:
 	{
 		last_simulation_cycle = frequency_domain->getCycle();
 	}
+
+	/// Get num cores for x86
+	/// Added to get the number of cores to the cache
+	virtual int getNumCores() { return 1; }
 };
 
 }

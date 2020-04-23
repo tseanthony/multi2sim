@@ -620,6 +620,18 @@ Module *System::ConfigReadCache(misc::IniFile *ini_file,
 			block_size,
 			replacement_policy,
 			write_policy);
+	
+	/// Added to get the number of cores to the cache
+	comm::ArchPool *arch_pool = comm::ArchPool::getInstance();
+	for (auto it = arch_pool->getTimingBegin(),
+			e = arch_pool->getTimingEnd();
+			it != e;
+			++it)
+	{
+		comm::Timing *timing = (*it)->getTiming();
+		mem::Cache *cache = module->getCache();
+		cache->setNumCores(timing->getNumCores());
+	}
 
 	// Done
 	return module;
@@ -1493,6 +1505,7 @@ void System::ReadConfiguration()
 			comm::Timing *timing = (*it)->getTiming();
 			assert(timing);
 			timing->WriteMemoryConfiguration(&ini_file);
+			ini_file.Save("default_config.ini");
 		}
 	}
 	else

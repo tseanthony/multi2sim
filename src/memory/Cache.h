@@ -152,6 +152,10 @@ private:
 	// Log base 2 of the block size
 	int log_block_size;
 
+	// Number of cores in architecture
+	// Added for set partitioning
+	unsigned num_cores = 1;
+
 	// Block replacement policy
 	ReplacementPolicy replacement_policy;
 
@@ -286,6 +290,14 @@ public:
 	{
 		Block *block = getBlock(set_id, way_id);
 		block->transient_tag = tag;
+	}
+
+	/// Set the number of cores
+	void setNumCores(int num_cores)
+	{ 
+		this->num_cores = num_cores;
+		printf("Cache %s, num_cores=%d", name, this->num_cores);
+		// set up lists to manage partitions
 	}
 
 
