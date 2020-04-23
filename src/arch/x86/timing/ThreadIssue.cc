@@ -135,7 +135,8 @@ int Thread::IssueStoreQueue(int quantum)
 		cpu->MemoryAccess(data_module,
 				mem::Module::AccessStore,
 				uop->physical_address,
-				uop);
+				uop,
+				core->getId());
 
 		// Mark uop as issued
 		uop->issued = true;
