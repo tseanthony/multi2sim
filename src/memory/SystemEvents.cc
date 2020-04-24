@@ -223,6 +223,7 @@ void System::EventLoadHandler(esim::Event *event, esim::Frame *esim_frame)
 		new_frame->blocking = true;
 		new_frame->read = true;
 		new_frame->retry = frame->retry;
+		new_frame->core_id = frame->core_id;
 		esim_engine->Call(event_find_and_lock,
 				new_frame,
 				event_load_action);
@@ -276,6 +277,7 @@ void System::EventLoadHandler(esim::Event *event, esim::Frame *esim_frame)
 				frame->tag);
 		new_frame->target_module = module->getLowModuleServingAddress(frame->tag);
 		new_frame->request_direction = Frame::RequestDirectionUpDown;
+		new_frame->core_id = frame->core_id;
 		esim_engine->Call(event_read_request,
 				new_frame,
 				event_load_miss);
@@ -511,6 +513,7 @@ void System::EventStoreHandler(esim::Event *event,
 		new_frame->write = true;
 		new_frame->retry = frame->retry;
 		new_frame->witness = frame->witness;
+		new_frame->core_id = frame->core_id;
 		esim_engine->Call(event_find_and_lock,
 				new_frame,
 				event_store_action);
@@ -567,6 +570,7 @@ void System::EventStoreHandler(esim::Event *event,
 		new_frame->target_module = module->getLowModuleServingAddress(frame->tag);
 		new_frame->request_direction = Frame::RequestDirectionUpDown;
 		new_frame->witness = frame->witness;
+		new_frame->core_id = frame->core_id;
 
 		// Set the expected reply size. This might change during the
 		// down up write process, and invalidation
@@ -786,6 +790,7 @@ void System::EventNCStoreHandler(esim::Event *event,
 		new_frame->blocking = true;
 		new_frame->nc_write = true;
 		new_frame->retry = frame->retry;
+		new_frame->core_id = frame->core_id;
 		esim_engine->Call(event_find_and_lock,
 				new_frame,
 				event_nc_store_writeback);
@@ -838,6 +843,7 @@ void System::EventNCStoreHandler(esim::Event *event,
 					0);
 			new_frame->set = frame->set;
 			new_frame->way = frame->way;
+			new_frame->core_id = frame->core_id;
 			esim_engine->Call(event_evict,
 					new_frame,
 					event_nc_store_action);
@@ -914,6 +920,7 @@ void System::EventNCStoreHandler(esim::Event *event,
 					frame->tag);
 			new_frame->message_type = Frame::MessageClearOwner;
 			new_frame->target_module = module->getLowModuleServingAddress(frame->tag);
+			new_frame->core_id = frame->core_id;
 			esim_engine->Call(event_message,
 					new_frame,
 					event_nc_store_miss);
@@ -935,6 +942,7 @@ void System::EventNCStoreHandler(esim::Event *event,
 			new_frame->nc_write = true;
 			new_frame->target_module = module->getLowModuleServingAddress(frame->tag);
 			new_frame->request_direction = Frame::RequestDirectionUpDown;
+			new_frame->core_id = frame->core_id;
 			esim_engine->Call(event_read_request,
 					new_frame,
 					event_nc_store_miss);
@@ -1330,6 +1338,7 @@ void System::EventFindAndLockHandler(esim::Event *event,
 					0);
 			new_frame->set = frame->set;
 			new_frame->way = frame->way;
+			new_frame->core_id = frame->core_id;
 			esim_engine->Call(event_evict,
 					new_frame,
 					event_find_and_lock_finish);
@@ -1481,6 +1490,7 @@ void System::EventEvictHandler(esim::Event *event,
 		new_frame->set = frame->set;
 		new_frame->way = frame->way;
 		new_frame->partial_invalidation = false;
+		new_frame->core_id = frame->core_id;
 		esim_engine->Call(event_invalidate,
 				new_frame,
 				event_evict_invalid);
@@ -1622,6 +1632,7 @@ void System::EventEvictHandler(esim::Event *event,
 		new_frame->request_direction = Frame::RequestDirectionDownUp;
 		new_frame->write = true;
 		new_frame->retry = false;
+		new_frame->core_id = frame->core_id;
 		if (frame->state == Cache::BlockNonCoherent)
 			esim_engine->Call(event_find_and_lock,
 					new_frame,
@@ -2049,6 +2060,7 @@ void System::EventWriteRequestHandler(esim::Event *event,
 		new_frame->request_direction = frame->request_direction;
 		new_frame->write = true;
 		new_frame->retry = false;
+		new_frame->core_id = frame->core_id;
 		esim_engine->Call(event_find_and_lock,
 				new_frame,
 				event_write_request_action);
@@ -2115,6 +2127,7 @@ void System::EventWriteRequestHandler(esim::Event *event,
 		new_frame->except_module = module;
 		new_frame->set = frame->set;
 		new_frame->way = frame->way;
+		new_frame->core_id = frame->core_id;
 		assert(frame->request_direction);
 		if (frame->request_direction == Frame::RequestDirectionDownUp)
 			new_frame->partial_invalidation = false;
@@ -2191,6 +2204,7 @@ void System::EventWriteRequestHandler(esim::Event *event,
 			new_frame->target_module = target_module->
 					getLowModuleServingAddress(frame->tag);
 			new_frame->request_direction = Frame::RequestDirectionUpDown;
+			new_frame->core_id = frame->core_id;
 			if (frame->state == Cache::BlockInvalid)
 			{
 				new_frame->reply_size = target_module->getBlockSize() 
@@ -2650,6 +2664,7 @@ void System::EventReadRequestHandler(esim::Event *event,
 				Frame::RequestDirectionDownUp;
 		new_frame->read = true;
 		new_frame->retry = false;
+		new_frame->core_id = frame->core_id;
 		esim_engine->Call(event_find_and_lock,
 				new_frame,
 				event_read_request_action);
@@ -2784,6 +2799,7 @@ void System::EventReadRequestHandler(esim::Event *event,
 						directory_entry_tag);
 				new_frame->target_module = owner_module;
 				new_frame->request_direction = Frame::RequestDirectionDownUp;
+				new_frame->core_id = frame->core_id;
 				esim_engine->Call(event_read_request,
 						new_frame,
 						event_read_request_updown_finish);
@@ -2805,6 +2821,7 @@ void System::EventReadRequestHandler(esim::Event *event,
 					frame->tag);
 			new_frame->target_module = target_module->getLowModuleServingAddress(frame->tag);
 			new_frame->request_direction = Frame::RequestDirectionUpDown;
+			new_frame->core_id = frame->core_id;
 			esim_engine->Call(event_read_request,
 					new_frame,
 					event_read_request_updown_miss);
@@ -3051,6 +3068,7 @@ void System::EventReadRequestHandler(esim::Event *event,
 					directory_entry_tag);
 			new_frame->target_module = owner;
 			new_frame->request_direction = Frame::RequestDirectionDownUp;
+			new_frame->core_id = frame->core_id;
 			esim_engine->Call(event_read_request,
 					new_frame,
 					event_read_request_downup_finish);
@@ -3390,6 +3408,7 @@ void System::EventInvalidateHandler(esim::Event *event,
 						directory_entry_tag);
 				new_frame->target_module = sharer;
 				new_frame->request_direction = Frame::RequestDirectionDownUp;
+				new_frame->core_id = frame->core_id;
 				esim_engine->Call(event_write_request,
 						new_frame,
 						event_invalidate_finish);
@@ -3549,6 +3568,7 @@ void System::EventMessageHandler(esim::Event *event,
 		new_frame->message_type = frame->message_type;
                 new_frame->blocking = false;
 		new_frame->retry = false;
+		new_frame->core_id = frame->core_id;
 
 		// Schedule event
 		esim_engine->Call(event_find_and_lock,
@@ -3847,6 +3867,7 @@ void System::EventLocalLoadHandler(esim::Event *event,
 		new_frame->blocking = true;
 		new_frame->read = true;
 		new_frame->retry = frame->retry;
+		new_frame->core_id = frame->core_id;
 		esim_engine->Call(event_local_find_and_lock,
 				new_frame,
 				event_local_load_finish);
@@ -3993,6 +4014,7 @@ void System::EventLocalStoreHandler(esim::Event *event,
 		new_frame->write = true;
 		new_frame->retry = frame->retry;
 		new_frame->witness = frame->witness;
+		new_frame->core_id = frame->core_id;
 		esim_engine->Call(event_local_find_and_lock,
 				new_frame,
 				event_local_store_finish);
