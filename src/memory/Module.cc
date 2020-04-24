@@ -162,7 +162,8 @@ bool Module::canAccess(int address) const
 long long Module::Access(AccessType access_type,
 		unsigned address,
 		int *witness,
-		esim::Event *return_event)
+		esim::Event *return_event,
+		int core_id)
 {
 	// Create a new event frame
 	auto frame = misc::new_shared<Frame>(
@@ -170,6 +171,7 @@ long long Module::Access(AccessType access_type,
 			this,
 			address);
 	frame->witness = witness;
+	frame->core_id = core_id;
 
 	// Select initial event type
 	esim::Event *event;

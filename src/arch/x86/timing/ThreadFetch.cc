@@ -281,7 +281,10 @@ void Thread::Fetch()
 		assert(instruction_module->canAccess(physical_address));
 		fetch_access = instruction_module->Access(
 				mem::Module::AccessLoad,
-				physical_address);
+				physical_address,
+				nullptr,
+				nullptr,
+				core->getId());
 		
 		// Stats
 		num_btb_reads++;

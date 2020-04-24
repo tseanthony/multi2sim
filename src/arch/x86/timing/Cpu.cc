@@ -217,13 +217,13 @@ void Cpu::MemoryAccessHandler(esim::Event *event, esim::Frame *esim_frame)
 	if (event == event_memory_access_start)
 	{
 		// Start access
-		std::cout << "core=" << frame->core_id << " access_type=" << frame->access_type << " module_type=" << frame->module->getType() << std::endl;
 		mem::Module *module = frame->module;
 		frame->uop->memory_access = module->Access(
 				frame->access_type,
 				frame->address,
 				nullptr,
-				event_memory_access_end);
+				event_memory_access_end,
+				frame->core_id);
 	}
 	else if (event == event_memory_access_end)
 	{
