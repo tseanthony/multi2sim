@@ -204,6 +204,10 @@ void Cache::AccessBlock(unsigned set_id, unsigned way_id, int core_id)
 		set->lru_list.Erase(block->lru_node);
 		set->lru_list.PushFront(block->lru_node);
 	}
+
+	if (core_id >= 0) {
+		std::cout << "Cache: " << name << ", cores=" << num_cores << ", core " << core_id << " has been seen in AccessBlock!" << std::endl;
+	}
 }
 
 
@@ -211,6 +215,10 @@ unsigned Cache::ReplaceBlock(unsigned set_id, int core_id)
 {
 	// Get the set
 	Set *set = getSet(set_id);
+
+	if (core_id >= 0) {
+		std::cout << "Cache: " << name << ", cores=" << num_cores << ", core " << core_id << " has been seen in ReplaceBlock!" << std::endl;
+	}
 
 	// For LRU and FIFO replacement policies, return the block at the end of
 	// the block list in the set.
