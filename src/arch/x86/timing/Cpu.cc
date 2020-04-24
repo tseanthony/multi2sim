@@ -201,8 +201,6 @@ void Cpu::MemoryAccess(mem::Module *module,
 	frame->uop = uop;
 	/// Adding in core id to pass to cache
 	frame->core_id = core_id;
-	
-	std::cout << "core=" << core_id << " access_type=" << access_type << " module_type=" << module->getType() << " ";
 
 	// Schedule event
 	esim::Engine *esim_engine = esim::Engine::getInstance();
@@ -219,6 +217,7 @@ void Cpu::MemoryAccessHandler(esim::Event *event, esim::Frame *esim_frame)
 	if (event == event_memory_access_start)
 	{
 		// Start access
+		std::cout << "core=" << frame->core_id << " access_type=" << frame->access_type << " module_type=" << frame->module->getType() << std::endl;
 		mem::Module *module = frame->module;
 		frame->uop->memory_access = module->Access(
 				frame->access_type,
