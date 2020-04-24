@@ -201,7 +201,6 @@ void Cpu::MemoryAccess(mem::Module *module,
 	frame->uop = uop;
 	/// Adding in core id to pass to cache
 	frame->core_id = core_id;
-	std::cout << "Core " << core_id << " in MemoryAccess ";
 
 	// Schedule event
 	esim::Engine *esim_engine = esim::Engine::getInstance();
