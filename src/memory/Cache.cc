@@ -161,11 +161,18 @@ void Cache::setBlock(unsigned set_id,
 	block->state = state;
 
 	if (core_id == -1) {
-		std::cout << "Cache: " << name << ", cores=" << num_cores << ", core " << core_id << " has been seen in setBlock!" << std::endl;
-	} else if (!seen_core_set) {
-		std::cout << "Cache: " << name << ", cores=" << num_cores << ", core " << core_id << " has been seen in setBlock!" << std::endl;
-		seen_core_set = true;
+		std::cout << "Cache: " << name << ", cores=" << num_cores << ", core " << core_id << " has been seen in ReplaceBlock!" << std::endl;
+	} else if (core_id == core_count_set) {
+		std::cout << "Cache: " << name << ", cores=" << num_cores << ", core " << core_id << " has been seen in ReplaceBlock!" << std::endl;
+		core_count_set++;
 	}
+
+	// if (core_id == -1) {
+	// 	std::cout << "Cache: " << name << ", cores=" << num_cores << ", core " << core_id << " has been seen in setBlock!" << std::endl;
+	// } else if (!seen_core_set) {
+	// 	std::cout << "Cache: " << name << ", cores=" << num_cores << ", core " << core_id << " has been seen in setBlock!" << std::endl;
+	// 	seen_core_set = true;
+	// }
 	
 	// if (core_id >= 0 && !core_list_set[core_id]) {
 	// 	std::cout << "Cache: " << name << ", cores=" << num_cores << ", core " << core_id << " has been seen in setBlock!" << std::endl;
@@ -209,11 +216,18 @@ void Cache::AccessBlock(unsigned set_id, unsigned way_id, int core_id)
 	}
 
 	if (core_id == -1) {
-		std::cout << "Cache: " << name << ", cores=" << num_cores << ", core " << core_id << " has been seen in AccessBlock!" << std::endl;
-	} else if (!seen_core_access) {
-		std::cout << "Cache: " << name << ", cores=" << num_cores << ", core " << core_id << " has been seen in AccessBlock!" << std::endl;
-		seen_core_access = true;
+		std::cout << "Cache: " << name << ", cores=" << num_cores << ", core " << core_id << " has been seen in ReplaceBlock!" << std::endl;
+	} else if (core_id == core_count_access) {
+		std::cout << "Cache: " << name << ", cores=" << num_cores << ", core " << core_id << " has been seen in ReplaceBlock!" << std::endl;
+		core_count_access++;
 	}
+
+	// if (core_id == -1) {
+	// 	std::cout << "Cache: " << name << ", cores=" << num_cores << ", core " << core_id << " has been seen in AccessBlock!" << std::endl;
+	// } else if (!seen_core_access) {
+	// 	std::cout << "Cache: " << name << ", cores=" << num_cores << ", core " << core_id << " has been seen in AccessBlock!" << std::endl;
+	// 	seen_core_access = true;
+	// }
 
 	// if (core_id >= 0 && !core_list_access[core_id]) {
 	// 	std::cout << "Cache: " << name << ", cores=" << num_cores << ", core " << core_id << " has been seen in AccessBlock!" << std::endl;
@@ -232,10 +246,17 @@ unsigned Cache::ReplaceBlock(unsigned set_id, int core_id)
 
 	if (core_id == -1) {
 		std::cout << "Cache: " << name << ", cores=" << num_cores << ", core " << core_id << " has been seen in ReplaceBlock!" << std::endl;
-	} else if (!seen_core_replace) {
+	} else if (core_id == core_count_replace) {
 		std::cout << "Cache: " << name << ", cores=" << num_cores << ", core " << core_id << " has been seen in ReplaceBlock!" << std::endl;
-		seen_core_replace = true;
+		core_count_replace++;
 	}
+
+	// if (core_id == -1) {
+	// 	std::cout << "Cache: " << name << ", cores=" << num_cores << ", core " << core_id << " has been seen in ReplaceBlock!" << std::endl;
+	// } else if (!seen_core_replace) {
+	// 	std::cout << "Cache: " << name << ", cores=" << num_cores << ", core " << core_id << " has been seen in ReplaceBlock!" << std::endl;
+	// 	seen_core_replace = true;
+	// }
 
 	// if (core_id >= 0 && !core_list_replace[core_id]) {
 	// 	std::cout << "Cache: " << name << ", cores=" << num_cores << ", core " << core_id << " has been seen in ReplaceBlock!" << std::endl;

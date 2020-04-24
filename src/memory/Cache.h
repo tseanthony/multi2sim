@@ -299,9 +299,12 @@ public:
 	// std::unique_ptr<bool[]> core_list_set;
 	// std::unique_ptr<bool[]> core_list_access;
 	// std::unique_ptr<bool[]> core_list_replace;
-	bool seen_core_set = false;
-	bool seen_core_access = false;
-	bool seen_core_replace = false;
+	// bool seen_core_set = false;
+	// bool seen_core_access = false;
+	// bool seen_core_replace = false;
+	int core_count_set = 0;
+	int core_count_access = 0;
+	int core_count_replace = 0;
 	/// Set the number of cores
 	void setNumCores(int num_cores)
 	{ 
