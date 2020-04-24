@@ -1184,7 +1184,6 @@ void System::EventFindAndLockHandler(esim::Event *event,
 
 			// Find a victim to evict, only in up-down accesses.
 			assert(!frame->way);
-			// Adding in core_id to pass to cache
 			frame->way = cache->ReplaceBlock(frame->set, frame->core_id);
 		}
 		assert(frame->way >= 0);
@@ -1289,7 +1288,6 @@ void System::EventFindAndLockHandler(esim::Event *event,
 		// subsequent lookup detects that the block is being brought.
 		// Also, update LRU counters here.
 		cache->setTransientTag(frame->set, frame->way, frame->tag);
-		// Adding in core_id to pass to cache
 		cache->AccessBlock(frame->set, frame->way, frame->core_id);
 
 		// Access latency
