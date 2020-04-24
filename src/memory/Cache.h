@@ -296,13 +296,16 @@ public:
 		block->transient_tag = tag;
 	}
 
-	std::unique_ptr<bool[]> core_list;
+	std::unique_ptr<int[]> core_list;
 	bool seen_core = false;
 	/// Set the number of cores
 	void setNumCores(int num_cores)
 	{ 
 		this->num_cores = num_cores;
-		core_list = misc::new_unique_array<bool>(num_cores);
+		core_list = misc::new_unique_array<int>(num_cores);
+		for (int i=0; i<num_cores; i++) {
+			core_list[i] = 0;
+		}
 		std::cout << "Cache: " << name << ", numcores=" << this->num_cores << std::endl;
 		// set up lists to manage partitions
 	}

@@ -159,10 +159,14 @@ void Cache::setBlock(unsigned set_id,
 	// Set new values for block
 	block->tag = tag;
 	block->state = state;
-	
-	if (core_id >= 0 && !core_list[core_id]) {
+
+	if (core_id >= 0) {
 		std::cout << "Cache: " << name << ", cores=" << num_cores << ", core " << core_id << " has been seen in setBlock!" << std::endl;
-		core_list[core_id] = true;
+	}
+	
+	if (core_id >= 0 && core_list[core_id] == 0) {
+		std::cout << "Cache: " << name << ", cores=" << num_cores << ", core " << core_id << " has been seen in setBlock!" << std::endl;
+		core_list[core_id] = 1;
 	} else if (!seen_core && core_id == -1) {
 		std::cout << "Cache: " << name << ", cores=" << num_cores << ", core " << core_id << " has been seen in setBlock!" << std::endl;
 		seen_core = true;
