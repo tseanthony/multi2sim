@@ -296,24 +296,24 @@ public:
 		block->transient_tag = tag;
 	}
 
-	std::unique_ptr<bool[]> core_list_set;
-	std::unique_ptr<bool[]> core_list_access;
-	std::unique_ptr<bool[]> core_list_replace;
-	bool seen_core_set = false;
-	bool seen_core_access = false;
-	bool seen_core_replace = false;
+	// std::unique_ptr<bool[]> core_list_set;
+	// std::unique_ptr<bool[]> core_list_access;
+	// std::unique_ptr<bool[]> core_list_replace;
+	// bool seen_core_set = false;
+	// bool seen_core_access = false;
+	// bool seen_core_replace = false;
 	/// Set the number of cores
 	void setNumCores(int num_cores)
 	{ 
 		this->num_cores = num_cores;
-		core_list_set = misc::new_unique_array<bool>(num_cores);
-		core_list_access = misc::new_unique_array<bool>(num_cores);
-		core_list_replace = misc::new_unique_array<bool>(num_cores);
-		for (int i=0; i<num_cores; i++) {
-			core_list_set[i] = false;
-			core_list_access[i] = false;
-			core_list_replace[i] = false;
-		}
+		// core_list_set = misc::new_unique_array<bool>(num_cores);
+		// core_list_access = misc::new_unique_array<bool>(num_cores);
+		// core_list_replace = misc::new_unique_array<bool>(num_cores);
+		// for (int i=0; i<num_cores; i++) {
+		// 	core_list_set[i] = false;
+		// 	core_list_access[i] = false;
+		// 	core_list_replace[i] = false;
+		// }
 		std::cout << "Cache: " << name << ", numcores=" << this->num_cores << std::endl;
 		// set up lists to manage partitions
 	}
