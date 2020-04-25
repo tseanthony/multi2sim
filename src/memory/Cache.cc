@@ -28,7 +28,8 @@ const misc::StringMap Cache::ReplacementPolicyMap =
 {
 	{ "LRU", ReplacementLRU },
 	{ "FIFO", ReplacementFIFO },
-	{ "Random", ReplacementRandom }
+	{ "Random", ReplacementRandom },
+    { "FLRU", ReplacementFLRU}
 };
 
 
@@ -87,6 +88,18 @@ Cache::Cache(const std::string &name,
 			set->lru_list.PushBack(block->lru_node);
 		}
 	}
+
+
+	// *** Initialize FLRU Variables (M and steal table) ***
+	m_size = num_cores;
+
+	stealcores = misc::new_unique_array<bool>(num_cores * (num_cores-1));
+    for( int i = 0; i < num_cores * (num_cores-1); i++){ stealcores[i] = false; }
+
+    int stealindexsize = (num_cores-1) * num_sets * num_ways;
+    stealindex = misc::new_unique_array<bool>(stealindexsize);
+    for( int i = 0; i < stealindexsize; i++){ stealindex = false; }
+
 }
 
 void Cache::DecodeAddress(unsigned address,
@@ -156,6 +169,12 @@ void Cache::setBlock(unsigned set_id,
 		set->lru_list.PushFront(block->lru_node);
 	}
 
+	if (replacement_policy == ReplacementFLRU
+	        && block->tag != tag)
+	{
+	    // TO DO: set according to M size,
+	}
+
 	// Set new values for block
 	block->tag = tag;
 	block->state = state;
@@ -167,20 +186,6 @@ void Cache::setBlock(unsigned set_id,
 		core_count_set++;
 	}
 
-	// if (core_id == -1) {
-	// 	std::cout << "Cache: " << name << ", cores=" << num_cores << ", core " << core_id << " has been seen in setBlock!" << std::endl;
-	// } else if (!seen_core_set) {
-	// 	std::cout << "Cache: " << name << ", cores=" << num_cores << ", core " << core_id << " has been seen in setBlock!" << std::endl;
-	// 	seen_core_set = true;
-	// }
-	
-	// if (core_id >= 0 && !core_list_set[core_id]) {
-	// 	std::cout << "Cache: " << name << ", cores=" << num_cores << ", core " << core_id << " has been seen in setBlock!" << std::endl;
-	// 	core_list_set[core_id] = true;
-	// } else if (!seen_core_set) {
-	// 	std::cout << "Cache: " << name << ", cores=" << num_cores << ", core " << core_id << " has been seen in setBlock!" << std::endl;
-	// 	seen_core_set = true;
-	// }
 }
 
 
@@ -215,6 +220,8 @@ void Cache::AccessBlock(unsigned set_id, unsigned way_id, int core_id)
 		set->lru_list.PushFront(block->lru_node);
 	}
 
+    // *** TO DO: Increment Frequency of Block, then Reorder according to frequency ***
+
 	if (core_id == -1) {
 		std::cout << "Cache: " << name << ", cores=" << num_cores << ", core " << core_id << " has been seen in ReplaceBlock!" << std::endl;
 	} else if (core_id == core_count_access) {
@@ -222,20 +229,6 @@ void Cache::AccessBlock(unsigned set_id, unsigned way_id, int core_id)
 		core_count_access++;
 	}
 
-	// if (core_id == -1) {
-	// 	std::cout << "Cache: " << name << ", cores=" << num_cores << ", core " << core_id << " has been seen in AccessBlock!" << std::endl;
-	// } else if (!seen_core_access) {
-	// 	std::cout << "Cache: " << name << ", cores=" << num_cores << ", core " << core_id << " has been seen in AccessBlock!" << std::endl;
-	// 	seen_core_access = true;
-	// }
-
-	// if (core_id >= 0 && !core_list_access[core_id]) {
-	// 	std::cout << "Cache: " << name << ", cores=" << num_cores << ", core " << core_id << " has been seen in AccessBlock!" << std::endl;
-	// 	core_list_access[core_id] = true;
-	// } else if (!seen_core_access) {
-	// 	std::cout << "Cache: " << name << ", cores=" << num_cores << ", core " << core_id << " has been seen in AccessBlock!" << std::endl;
-	// 	seen_core_access = true;
-	// }
 }
 
 
@@ -250,21 +243,6 @@ unsigned Cache::ReplaceBlock(unsigned set_id, int core_id)
 		std::cout << "Cache: " << name << ", cores=" << num_cores << ", core " << core_id << " has been seen in ReplaceBlock!" << std::endl;
 		core_count_replace++;
 	}
-
-	// if (core_id == -1) {
-	// 	std::cout << "Cache: " << name << ", cores=" << num_cores << ", core " << core_id << " has been seen in ReplaceBlock!" << std::endl;
-	// } else if (!seen_core_replace) {
-	// 	std::cout << "Cache: " << name << ", cores=" << num_cores << ", core " << core_id << " has been seen in ReplaceBlock!" << std::endl;
-	// 	seen_core_replace = true;
-	// }
-
-	// if (core_id >= 0 && !core_list_replace[core_id]) {
-	// 	std::cout << "Cache: " << name << ", cores=" << num_cores << ", core " << core_id << " has been seen in ReplaceBlock!" << std::endl;
-	// 	core_list_replace[core_id] = true;
-	// } else if (!seen_core_replace) {
-	// 	std::cout << "Cache: " << name << ", cores=" << num_cores << ", core " << core_id << " has been seen in ReplaceBlock!" << std::endl;
-	// 	seen_core_replace = true;
-	// }
 
 
 	// For LRU and FIFO replacement policies, return the block at the end of
@@ -284,6 +262,25 @@ unsigned Cache::ReplaceBlock(unsigned set_id, int core_id)
 		// Return way index of the selected block
 		return block->way_id;
 	}
+
+    if (replacement_policy == ReplacementFLRU){
+
+        Block *block = nullptr;
+        int stealing_core = -1;
+        if (FLRUcheckForSelf(core_id)){
+            // Check if belonging ways are in M
+
+        } else if ( (stealing_core = FLRUcheckForStolen(core_id)) > -1 ){
+            // Check if own ways are stolen in cache and clear record
+
+        } else {
+            // Select lowest priority block and record steal
+
+        }
+
+        return block->way_id;
+
+    }
 
 	// Random replacement policy
 	assert(replacement_policy == ReplacementRandom);

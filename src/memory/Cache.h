@@ -39,7 +39,8 @@ public:
 		ReplacementInvalid,
 		ReplacementLRU,
 		ReplacementFIFO,
-		ReplacementRandom
+		ReplacementRandom,
+        ReplacementFLRU // *** Frequency LRU ***
 	};
 
 	/// String map for ReplacementPolicy
@@ -75,7 +76,10 @@ public:
 	/// misc::List::Node for details.
 	class Block
 	{
-		// Only Cache needs to initialize fields
+		// *** Access frequency counter ***
+		unsigned counter = 0;
+
+	    // Only Cache needs to initialize fields
 		friend class Cache;
 
 		// Block tag
@@ -99,6 +103,15 @@ public:
 		Block() : lru_node(this)
 		{
 		}
+
+		// *** set frequency count to 0 ***
+		void resetCounter() { counter = 0; }
+
+		// *** increment frequency count ***
+		void increCounter() { counter++; }
+
+		// *** get counter value ***
+		unsigned getCounter() { return counter; }
 
 		/// Get the block tag
 		unsigned getTag() const { return tag; }
@@ -175,6 +188,16 @@ private:
 		return &sets[set_id];
 	}
 
+    // *** Stealing information record between cores ***
+    std::unique_ptr<bool[]> stealcores;
+
+    // *** Array of records representing table of stealing indices ***
+    std::unique_ptr<bool[]> stealindex;  // flattened table of [core1, core2, set, belonging ways]
+
+    // *** int for size of "M" in FLRU ***
+    unsigned m_size = 0;
+
+
 public:
 
 	/// Constructor
@@ -184,7 +207,60 @@ public:
 			unsigned block_size,
 			ReplacementPolicy replacement_policy,
 			WritePolicy write_policy);
-	
+
+    // *** helper functions for FLRU ***
+
+    // iterate through M LRU to find own belonging ways
+    Block* FLRUcheckForSelf(unsigned set_id, unsigned core_id){
+
+        Set *set = getSet(set_id);
+        misc::List<Block>::Iterator iter = set->lru_list.Begin()
+        for (int i = 0; i < msize(); i++){
+            unsigned curr_way_id = iter->getWayId();
+
+            unsigned wayspercore = num_ways / num_cores;
+            unsigned startway = core_id * wayspercore;
+            unsigned endway = startway + wayspercore;
+
+            // compare ways of block to belonging ways
+            for (unsigned j = startway; j < endway; j++){
+                if (curr_way_id == j){
+                    return &(*iter);
+                }
+            }
+
+            iter++;
+        }
+
+        return nullptr;
+    };
+
+    int FLRUcheckForStolen(unsigned set_id, unsigned core_id){
+
+        Set *set = getSet(set_id);
+        misc::List<Block>::Iterator iter = set->lru_list.Begin()
+        for (int i = 0; i < msize(); i++){
+            unsigned curr_way_id = iter->getWayId();
+
+            unsigned wayspercore = num_ways / num_cores;
+            unsigned startway = core_id * wayspercore;
+            unsigned endway = startway + wayspercore;
+
+            // compare ways of block to belonging ways
+            for (unsigned j = startway; j < endway; j++){
+                if (curr_way_id == j){
+                    return &(*iter);
+                }
+            }
+
+            iter++;
+        }
+
+        return nullptr;
+
+    };
+
+
 	/// Return a pointer to a cache block
 	Block *getBlock(unsigned set_id, unsigned way_id) const
 	{
@@ -302,26 +378,16 @@ public:
 	// bool seen_core_set = false;
 	// bool seen_core_access = false;
 	// bool seen_core_replace = false;
+
 	int core_count_set = 0;
 	int core_count_access = 0;
 	int core_count_replace = 0;
 	/// Set the number of cores
+
 	void setNumCores(int num_cores)
 	{ 
 		this->num_cores = num_cores;
-		// core_list_set = misc::new_unique_array<bool>(num_cores);
-		// core_list_access = misc::new_unique_array<bool>(num_cores);
-		// core_list_replace = misc::new_unique_array<bool>(num_cores);
-		// for (int i=0; i<num_cores; i++) {
-		// 	core_list_set[i] = false;
-		// 	core_list_access[i] = false;
-		// 	core_list_replace[i] = false;
-		// }
-		std::cout << "Cache: " << name << ", numcores=" << this->num_cores << std::endl;
-		// set up lists to manage partitions
 	}
-
-
 
 	//
 	// Getters
