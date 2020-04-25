@@ -25,6 +25,8 @@
 #include <lib/cpp/List.h>
 #include <lib/cpp/String.h>
 
+#include <limits>
+
 
 namespace mem
 {
@@ -104,15 +106,6 @@ public:
 		{
 		}
 
-		// *** set frequency count to 0 ***
-		void resetCounter() { counter = 0; }
-
-		// *** increment frequency count ***
-		void increCounter() { counter++; }
-
-		// *** get counter value ***
-		unsigned getCounter() { return counter; }
-
 		/// Get the block tag
 		unsigned getTag() const { return tag; }
 
@@ -146,7 +139,18 @@ private:
 
 		// Position in Cache::blocks where the blocks start for this set
 		Block *blocks;
+
+		// Core that owns each way
+        std::unique_ptr<int[]> way_owner;
+
+        void initWayOwner(unsigned num_cores, unsigned num_ways){
+            for (unsigned i = 0; i < num_ways; i++){
+                way_owner[i] = i % num_cores;
+            }
+        }
+
 	};
+
 
 	// Name of the cache, used for debugging purposes
 	std::string name;
@@ -188,15 +192,7 @@ private:
 		return &sets[set_id];
 	}
 
-    // *** Stealing information record between cores ***
-    std::unique_ptr<bool[]> stealcores;
-
-    // *** Array of records representing table of stealing indices ***
-    std::unique_ptr<bool[]> stealindex;  // flattened table of [core1, core2, set, belonging ways]
-
-    // *** int for size of "M" in FLRU ***
     unsigned m_size = 0;
-
 
 public:
 
@@ -207,58 +203,6 @@ public:
 			unsigned block_size,
 			ReplacementPolicy replacement_policy,
 			WritePolicy write_policy);
-
-    // *** helper functions for FLRU ***
-
-    // iterate through M LRU to find own belonging ways
-    Block* FLRUcheckForSelf(unsigned set_id, unsigned core_id){
-
-        Set *set = getSet(set_id);
-        misc::List<Block>::Iterator iter = set->lru_list.Begin()
-        for (int i = 0; i < msize(); i++){
-            unsigned curr_way_id = iter->getWayId();
-
-            unsigned wayspercore = num_ways / num_cores;
-            unsigned startway = core_id * wayspercore;
-            unsigned endway = startway + wayspercore;
-
-            // compare ways of block to belonging ways
-            for (unsigned j = startway; j < endway; j++){
-                if (curr_way_id == j){
-                    return &(*iter);
-                }
-            }
-
-            iter++;
-        }
-
-        return nullptr;
-    };
-
-    int FLRUcheckForStolen(unsigned set_id, unsigned core_id){
-
-        Set *set = getSet(set_id);
-        misc::List<Block>::Iterator iter = set->lru_list.Begin()
-        for (int i = 0; i < msize(); i++){
-            unsigned curr_way_id = iter->getWayId();
-
-            unsigned wayspercore = num_ways / num_cores;
-            unsigned startway = core_id * wayspercore;
-            unsigned endway = startway + wayspercore;
-
-            // compare ways of block to belonging ways
-            for (unsigned j = startway; j < endway; j++){
-                if (curr_way_id == j){
-                    return &(*iter);
-                }
-            }
-
-            iter++;
-        }
-
-        return nullptr;
-
-    };
 
 
 	/// Return a pointer to a cache block
@@ -387,9 +331,83 @@ public:
 	void setNumCores(int num_cores)
 	{ 
 		this->num_cores = num_cores;
+
+		for (unsigned i = 0; i < num_sets; i++){
+		    //sets[i].setowner
+		}
+
 	}
 
-	//
+    // *** helper functions for FLRU ***
+
+    // check block for membership in M
+
+    // find lowest frequency block in M
+    Block* FLRUgetLowFrequency(unsigned set_id){
+
+        Set *set = getSet(set_id);
+        auto iter = set->lru_list.tail();
+        unsigned minFrequency = std::numeric_limits<unsigned int>::max();
+        Block * victimBlock = *iter;
+        for (unsigned i = 0; i < m_size; i++){
+            if (*iter->counter < minFrequency){
+                victimBlock = *iter;
+                minFrequency = *iter->counter;
+            }
+            iter--;
+        }
+        return victimBlock;
+    };
+
+    // iterate through M LRU to find own belonging ways
+    bool FLRUcheckMforBlock(unsigned set_id, unsigned way_id){
+        Set *set = getSet(set_id);
+        auto iter = set->lru_list.tail();
+        for (unsigned i = 0; i < m_size; i++){
+            if (*iter->way_id == way_id){ return true; }
+            iter--;
+        }
+        return false;
+    };
+
+
+    // iterate through M LRU to find own belonging ways
+    Block* FLRUcheckForSelf(unsigned set_id, unsigned core_id){
+
+        Set *set = getSet(set_id);
+        auto iter = set->lru_list.tail();
+        for (unsigned i = 0; i < m_size; i++){
+            unsigned curr_way_id = *iter->way_id;
+
+            if (way_owner[curr_way_id] == core_id){
+                return *iter;
+            }
+            iter--;
+
+        }
+        return nullptr;
+    };
+
+    Block* FLRUcheckForStolen(unsigned set_id, unsigned core_id){
+
+        Set *set = getSet(set_id);
+
+        // for later: choose lowest priority way instead of first
+
+        // first: check owners for
+        for (unsigned i = 0; i < num_cores; i++){
+            unsigned victim_way = (num_cores * i) + core_id;
+            if (way_owner[victim_way] != core_id){
+                return getBlock(set_id, victim_way);
+            }
+        }
+
+        return nullptr;
+
+    };
+
+
+    //
 	// Getters
 	//
 

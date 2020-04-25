@@ -136,6 +136,13 @@ private:
 
 public:
 
+    // *** get m position
+    Iterator FLRUgetMIter(unsigned m_size){
+        auto iter = Iterator(tail);
+        for (unsigned i = 0; i < m_size-2; i++){ iter--; }
+        return iter;
+    }
+
 	/// Return the number of elements in the list
 	int getSize() const { return size; }
 
@@ -144,6 +151,7 @@ public:
 	{
 		return Iterator(head);
 	}
+
 
 	/// Return a past-the-end iterator
 	Iterator end()

@@ -89,7 +89,6 @@ Cache::Cache(const std::string &name,
 		}
 	}
 
-
 	// *** Initialize FLRU Variables (M and steal table) ***
 	m_size = num_cores;
 
@@ -169,22 +168,10 @@ void Cache::setBlock(unsigned set_id,
 		set->lru_list.PushFront(block->lru_node);
 	}
 
-	if (replacement_policy == ReplacementFLRU
-	        && block->tag != tag)
-	{
-	    // TO DO: set according to M size,
-	}
 
 	// Set new values for block
 	block->tag = tag;
 	block->state = state;
-
-	if (core_id == -1) {
-		std::cout << "Cache: " << name << ", cores=" << num_cores << ", core " << core_id << " has been seen in ReplaceBlock!" << std::endl;
-	} else if (core_id == core_count_set) {
-		std::cout << "Cache: " << name << ", cores=" << num_cores << ", core " << core_id << " has been seen in ReplaceBlock!" << std::endl;
-		core_count_set++;
-	}
 
 }
 
@@ -221,14 +208,25 @@ void Cache::AccessBlock(unsigned set_id, unsigned way_id, int core_id)
 	}
 
     // *** TO DO: Increment Frequency of Block, then Reorder according to frequency ***
+    if (replacement_policy == ReplacementFLRU){
 
-	if (core_id == -1) {
-		std::cout << "Cache: " << name << ", cores=" << num_cores << ", core " << core_id << " has been seen in ReplaceBlock!" << std::endl;
-	} else if (core_id == core_count_access) {
-		std::cout << "Cache: " << name << ", cores=" << num_cores << ", core " << core_id << " has been seen in ReplaceBlock!" << std::endl;
-		core_count_access++;
-	}
+        // Increment frequency counter
+        block->counter++;
 
+        // Remove block from lru list
+        set->lru_list.Erase(block->lru_node);
+
+        // Promotion according to current position
+        if (FLRUcheckMforBlock(set_id, way_id)){
+            // Push to M position
+            set->lru_list.Insert(set->lru_list.FLRUgetMIter(m_size), block->lru_node);
+
+        } else {
+            // Push to MRU position
+            set->lru_list.PushFront(block->lru_node);
+        }
+
+    }
 }
 
 
@@ -266,20 +264,26 @@ unsigned Cache::ReplaceBlock(unsigned set_id, int core_id)
     if (replacement_policy == ReplacementFLRU){
 
         Block *block = nullptr;
-        int stealing_core = -1;
-        if (FLRUcheckForSelf(core_id)){
+        if (block = misc::cast<Block *>(FLRUcheckForSelf(set_id, core_id))){
             // Check if belonging ways are in M
-
-        } else if ( (stealing_core = FLRUcheckForStolen(core_id)) > -1 ){
+        } else if (block = misc::cast<Block *>(FLRUcheckForStolen(set_id, core_id))){
             // Check if own ways are stolen in cache and clear record
-
         } else {
-            // Select lowest priority block and record steal
-
+            // Select lowest priority (lowest frequency) block as victim
+            block = misc::cast<Block *>(FLRUgetLowFrequency(set_id));
         }
 
-        return block->way_id;
+        // Reset frequency counter
+        block->counter = 0;
 
+        // Record new owner of block
+        set->way_owner[block->way_id] = core_id;
+
+        // Insert node into M position
+        set->lru_list.Erase(block->lru_node);
+        set->lru_list.Insert(set->lru_list.FLRUgetMIter(m_size), block->lru_node);
+
+        return block->way_id;
     }
 
 	// Random replacement policy
